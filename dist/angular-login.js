@@ -135,7 +135,7 @@ var AVaughanLogin = AVaughanLogin || {
       }
     },
     getLocalToken: function () {
-      var authToken = localStorage['authToken'];
+      var authToken = localStorage.authToken;
       this.logger.debug('AUTH TOKEN:' + authToken);
       return authToken;
     },
@@ -151,7 +151,7 @@ var AVaughanLogin = AVaughanLogin || {
         config.headers['X-Auth-Token'] = this.getLocalToken();
       }
       return config;
-    }
+    }  //<<<<<<<<<<<< end FIXME::
   };
 //bind this to AVaughanLogin
 //_.bindAll(AVaughanLogin);

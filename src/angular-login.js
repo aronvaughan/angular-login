@@ -109,7 +109,7 @@ var AVaughanLogin = AVaughanLogin || {
         var self = this;
         $http.post(this.loginConfig.loginUrlForRemote, postData, this.getAuthenticateHttpConfig).
         success(function(data) {
-            self.logger.info("Login successful for user: ", [username, data]);
+            self.logger.info('Login successful for user: ', [username, data]);
             self.getAuthManager().save(data, $rootScope, $cookieStore);
             self.authService.loginConfirmed(data, self.configUpdateFunction);
         }).
@@ -124,7 +124,7 @@ var AVaughanLogin = AVaughanLogin || {
         var self = this;
         $http.post(this.loginConfig.logoutUrlForRemote, {}, this.getHttpConfig()).
         success(function() {
-            self.logger.info("Logout successful");
+            self.logger.info('Logout successful');
             self.getAuthManager().clear($cookieStore, $rootScope);
             //remove any user data
             $rootScope.$broadcast('event:auth-logoutConfirmed', '');
@@ -169,7 +169,7 @@ var AVaughanLogin = AVaughanLogin || {
     },
 
     isTokenAvailable: function($rootScope, $cookieStore) {
-        return this.getAuthManager().isTokenAvailable($rootScope, $cookieStore)
+        return this.getAuthManager().isTokenAvailable($rootScope, $cookieStore);
     },
 
     /**
@@ -203,8 +203,9 @@ var AVaughanLogin = AVaughanLogin || {
         }
     },
 
+    //FIXME:>>>>>> move to token manager
     getLocalToken: function() {
-        var authToken = localStorage['authToken'];
+        var authToken = localStorage.authToken;
         this.logger.debug('AUTH TOKEN:' + authToken);
         return authToken;
     },
@@ -230,6 +231,7 @@ var AVaughanLogin = AVaughanLogin || {
         }
         return config;
     }
+    //<<<<<<<<<<<< end FIXME::
 };
 
 //bind this to AVaughanLogin

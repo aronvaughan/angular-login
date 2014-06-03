@@ -1,10 +1,16 @@
+'use strict';
+
 var GrailsSpringSecurityRestAuthManager = {
 
-    name: "GrailsSpringSecurityRestAuthManager",
+    name: 'GrailsSpringSecurityRestAuthManager',
 
     useAuthTokenHeader: true,
 
     logger: undefined,
+
+    getName: function() {
+        return this.name;
+    },
 
     setLog: function(avLog) {
         this.logger = avLog.getLogger('AuthManager');
@@ -31,11 +37,11 @@ var GrailsSpringSecurityRestAuthManager = {
     },
 
     load: function($cookieStore, $rootScope) {
-        var authToken = undefined;
+        var authToken;
         if ($cookieStore) {
             authToken = $cookieStore.get('authToken');
         } else {
-            console.log("TOKEN_MANAGER: WARN $cookieStore is undefined");
+            console.log('TOKEN_MANAGER: WARN $cookieStore is undefined');
         }
         if (authToken !== undefined) {
             console.log('TOKEN_MANAGER, load, got valid value from cookie', authToken);
@@ -45,7 +51,7 @@ var GrailsSpringSecurityRestAuthManager = {
 
     save: function(dataFromLoginPost, $rootScope, $cookieStore) {
         this.logger.debug('save, authentication token: ' + dataFromLoginPost.token, dataFromLoginPost);
-        localStorage['authToken'] = dataFromLoginPost.token;
+        localStorage.authToken = dataFromLoginPost.token;
         $rootScope.authToken = dataFromLoginPost.token;
         $cookieStore.put('authToken', dataFromLoginPost.token);
         /*  $cookieStore('JSESSIONID', auth_hash.JSESSIONID);
@@ -67,3 +73,4 @@ var GrailsSpringSecurityRestAuthManager = {
  * @type {{name: string, useAuthTokenHeader: boolean, setTokenOnRequest: Function, isTokenAvailable: Function, getTokenValues: Function, transferCookieTokensToAngular: Function, persistTokens: Function, removeTokens: Function}}
  */
 var AVaughanLoginAuthManager = GrailsSpringSecurityRestAuthManager;
+AVaughanLoginAuthManager.getName(); //avoid jshint unused warning

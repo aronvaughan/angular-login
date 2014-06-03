@@ -301,6 +301,7 @@ module.exports = function(grunt) {
     grunt.registerTask('build', [
         'clean:dist',
         'jsbeautifier:pre-test',
+        'jshint',
         'less:dist',
         'ngmin:dist',
         'uglify:dist'
