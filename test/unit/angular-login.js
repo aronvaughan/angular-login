@@ -12,7 +12,7 @@ describe('Module: myApp', function() {
         console.log('avLogin injected', this.avLogin);
     }));
 
-    afterEach(function () {
+    afterEach(function() {
         //scope.$destroy();
     });
 

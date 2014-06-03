@@ -1,6 +1,6 @@
 {
   "name": "angular-login",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "angular lib for pulling together some other great libraries and making ajax login easier to implement, separates config values (what url for login, what tokens and the name, where to go if un-authenticated) - into config objects and calls into login/logout logic based on those settings",
   "keywords": [
     "angular",
