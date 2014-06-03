@@ -39,7 +39,7 @@
   "devDependencies": {
     "angular": "latest",
     "angular-mocks": "latest",
-    "bootstrap": "latest",
+    "bootstrap": "latest"
   },
   "resolutions": {
     "angular": "1.2.16"
