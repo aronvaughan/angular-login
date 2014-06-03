@@ -15,10 +15,13 @@ files: [
   //ANGULAR_SCENARIO,
   //ANGULAR_SCENARIO_ADAPTER,
   'bower_components/angular/angular.js',
+  'bower_components/angular-cookies/angular-cookies.js',
   'bower_components/angular-resource/angular-resource.js',
   'bower_components/angular-mocks/angular-mocks.js',
   'bower_components/angular-logging/dist/angular-logging.js',
   'bower_components/lodash/dist/lodash.min.js',
+  'bower_components/angular-http-auth/src/http-auth-interceptor.js',
+  'src/authManager/*.js',
   'src/*.js',
   'src/example/scripts/*.js',
   'test/unit/*.js'
