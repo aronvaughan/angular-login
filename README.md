@@ -26,8 +26,13 @@ In your web page:
    <!-- endbuild -->
 
    <!-- build:js scripts/app.min.js -->
+
+   <!-- to use the non-minified versions -->
    <script src="../authManager/authManager_grailsSpringSecurityRest.js"></script>
-   <script src="../angular-login-service.js"></script>
+   <script src="../angular-login.js"></script>
+
+   <!-- to use the minified version (the auth managers have been concatenated with the main file -->
+   <script src="../<path>/angulal-login.min.js
 ```
 this project depends on lodash or underscore, angular-logging, angular, angular-resource, angular-cookies, and http-auth-interceptor .js libraries
 
@@ -156,12 +161,19 @@ To override these settings
 
 ```js
 /**
- * configure the logging infrastructure
+ * configure the login infrastructure
  */
 myApp.config(function(avLoginProvider) {
-    //optional...override config values....
-    var loginConfig = _.extend(AVaughanLoginConfig, {someProperty: 'new value'});
-    avLoginProvider.initialize(loginConfig);
+
+     //initialize and override 'someProperty' as well as choose with AuthManager to use (should handle
+     //whatever backend tokens are sent by the server session provider
+     var loginConfig = AVaughanLoginConfigFactory.create({
+            someProperty: 'new value'
+        }, GrailsSpringSecurityRestAuthManager);
+
+     //initilize login with our config...
+     avLoginProvider.initialize(loginConfig);
+
 });
 ```
 

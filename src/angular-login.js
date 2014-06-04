@@ -1,5 +1,5 @@
 'use strict';
-/*global angular:true, console:true, localStorage: true, AVaughanLoginAuthManager: true*/
+/*global angular:true, console:true, localStorage: true*/
 
 // //http://alvarosanchez.github.io/grails-spring-security-rest/docs/guide/introduction.html
 //http://asoftwareguy.com/
@@ -53,9 +53,23 @@ var AVaughanLoginConfig = {
     /**
      * abstract token storage/retrieval so impl is pluggable
      */
-    authManager: _.extend(AVaughanLoginAuthManager, {})
+    authManager: undefined, //_.extend(AVaughanLoginAuthManager, {})
+
+    setAuthManager: function(authManager) {
+        this.authManager = _.extend(authManager, {});
+    }
 
 };
+
+/* jshint ignore:start*/
+var AVaughanLoginConfigFactory = {
+    create: function(properties, authManager) {
+        var config = _.extend(AVaughanLoginConfig, properties);
+        config.setAuthManager(authManager);
+    }
+};
+/* jshint ignore:end*/
+
 
 var AVaughanLogin = AVaughanLogin || {
 
@@ -143,7 +157,8 @@ var AVaughanLogin = AVaughanLogin || {
      *
      * @returns {Function}
      */
-    getRequestInterceptor: function($cookieStore) {
+
+    getRequestInterceptor: function() {
         if (this.logger) {
             this.logger.debug('get request interceptor called');
         } else {
@@ -151,21 +166,23 @@ var AVaughanLogin = AVaughanLogin || {
         }
 
         var self = this;
-        return function($q, $rootScope) {
-            return {
-                'request': function(config) {
-                    self.logger.debug('avaughan.login request interceptor!!!!', [self.getAuthManager().getTokenValues($rootScope), config]);
-                    var isRestCall = config.url.indexOf(self.loginConfig.restCallsWillContain) >= 0;
-                    self.logger.debug('avaughan.login request is rest call?', [isRestCall, config.url]);
-                    if (isRestCall && self.getAuthManager().isTokenAvailable($rootScope, $cookieStore)) {
-                        self.getAuthManager().setAuthOnRequest($rootScope, config);
-                    } else {
-                        self.logger.debug('avaughan.login token is not available, or not rest call');
+        return ['$q', '$rootScope', '$cookieStore',
+            function($q, $rootScope, $cookieStore) {
+                return {
+                    'request': function(config) {
+                        self.logger.debug('avaughan.login request interceptor!!!!', [self.getAuthManager().getTokenValues($rootScope), config]);
+                        var isRestCall = config.url.indexOf(self.loginConfig.restCallsWillContain) >= 0;
+                        self.logger.debug('avaughan.login request is rest call?', [isRestCall, config.url]);
+                        if (isRestCall && self.getAuthManager().isTokenAvailable($rootScope, $cookieStore)) {
+                            self.getAuthManager().setAuthOnRequest($rootScope, config);
+                        } else {
+                            self.logger.debug('avaughan.login token is not available, or not rest call');
+                        }
+                        return config || $q.when(config);
                     }
-                    return config || $q.when(config);
-                }
-            };
-        };
+                };
+            }
+        ];
     },
 
     isTokenAvailable: function($rootScope, $cookieStore) {
@@ -200,6 +217,11 @@ var AVaughanLogin = AVaughanLogin || {
                 }
                 $location.path(this.loginConfig.redirectIfTokenNotFoundUrl);
             }
+        }
+        if (this.logger) {
+            this.logger.debug('app.js routing to path complete', originalPath);
+        } else {
+            console.log('app.js routing to path complete', originalPath);
         }
     },
 
@@ -238,11 +260,10 @@ var AVaughanLogin = AVaughanLogin || {
 //_.bindAll(AVaughanLogin);
 
 //define modules....
-angular.module('avaughan.login', ['avaughan.logging']);
+angular.module('avaughan.login', ['avaughan.logging', 'ngResource', 'ngCookies', 'http-auth-interceptor']);
 angular.module('avaughan.login').provider('avLogin', ['$httpProvider',
-    function avLoginProvider($httpProvider) {
+    function($httpProvider) {
         var avaughanLogin = _.extend(AVaughanLogin, {});
-        avaughanLogin.interceptHttpRequests($httpProvider);
 
         this.initialize = function(loginConfig) {
             console.log('avaughan.login initialize called', loginConfig);
@@ -252,6 +273,7 @@ angular.module('avaughan.login').provider('avLogin', ['$httpProvider',
         this.$get = ['authService', 'avLog',
             function(authService, avLog) {
                 console.log('avaughan.login get called', authService);
+                avaughanLogin.interceptHttpRequests($httpProvider);
                 avaughanLogin.initialize(authService, avLog);
                 return avaughanLogin;
             }

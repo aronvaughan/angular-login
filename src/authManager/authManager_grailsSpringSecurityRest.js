@@ -1,5 +1,6 @@
 'use strict';
 
+/* jshint ignore:start */
 var GrailsSpringSecurityRestAuthManager = {
 
     name: 'GrailsSpringSecurityRestAuthManager',
@@ -68,9 +69,10 @@ var GrailsSpringSecurityRestAuthManager = {
     }
 
 };
+/* jshint ignore:end */
 /**
  * wires this token manager
  * @type {{name: string, useAuthTokenHeader: boolean, setTokenOnRequest: Function, isTokenAvailable: Function, getTokenValues: Function, transferCookieTokensToAngular: Function, persistTokens: Function, removeTokens: Function}}
  */
-var AVaughanLoginAuthManager = GrailsSpringSecurityRestAuthManager;
-AVaughanLoginAuthManager.getName(); //avoid jshint unused warning
+//var AVaughanLoginAuthManager = GrailsSpringSecurityRestAuthManager;
+//GrailsSpringSecurityRestAuthManager.getName(); //avoid jshint unused warning

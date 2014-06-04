@@ -177,8 +177,13 @@ module.exports = function(grunt) {
                 banner: '<%= meta.banner %>'
             },
             dist: {
-                src: ['<%= yo.src %>/<%= pkg.name %>.js'],
-                dest: '<%= yo.dist %>/<%= pkg.name %>.js'
+                files: [{
+                    src: '<%= yo.src %>/<%= pkg.name %>.js',
+                    dest: '<%= yo.dist %>/<%= pkg.name %>.js'
+                }, {
+                    src: '<%= yo.src %>/authManager/authManager_grailsSpringSecurityRest.js',
+                    dest: '<%= yo.dist %>/authManager/authManager_grailsSpringSecurityRest.js'
+                }]
             }
             // dist: {
             //   files: {
@@ -192,17 +197,29 @@ module.exports = function(grunt) {
                 stripBanners: true
             },
             dist: {
-                src: ['<%= yo.src %>/<%= pkg.name %>.js'],
-                dest: '<%= yo.dist %>/<%= pkg.name %>.js'
+                src: ['<%= yo.src %>/authManager/authManager_grailsSpringSecurityRest.js', '<%= yo.src %>/<%= pkg.name %>.js'],
+                dest: '<%= yo.dist %>/<%= pkg.name %>.min.js'
             }
         },
         uglify: {
             options: {
                 banner: '<%= meta.banner %>'
             },
+            /*
             dist: {
                 src: '<%= concat.dist.dest %>',
                 dest: '<%= yo.dist %>/<%= pkg.name %>.min.js'
+            }  */
+            dist: {
+                files: [{
+                        src: '<%= concat.dist.dest %>',
+                        dest: '<%= yo.dist %>/<%= pkg.name %>.min.js'
+                    }
+                    /*, {
+                    src: '<%= yo.dist %>/authManager/authManager_grailsSpringSecurityRest.js',
+                    dest: '<%= yo.dist %>/authManager/authManager_grailsSpringSecurityRest.min.js'
+                }*/
+                ]
             }
         },
         jsbeautifier: {
@@ -304,6 +321,7 @@ module.exports = function(grunt) {
         'jshint',
         'less:dist',
         'ngmin:dist',
+        'concat:dist',
         'uglify:dist'
     ]);
 
