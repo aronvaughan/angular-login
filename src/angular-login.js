@@ -133,6 +133,11 @@ var AVaughanLogin = AVaughanLogin || {
         });
     },
 
+    loginConfirmed: function(user) {
+        this.logger.info('loginConfirmed', user);
+        this.authService.loginConfirmed(user, this.configUpdateFunction);
+    },
+
     logout: function($http, $cookieStore, $rootScope) {
         this.logger.debug('logout called');
         var self = this;

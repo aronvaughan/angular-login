@@ -32,7 +32,7 @@ In your web page:
    <script src="../angular-login.js"></script>
 
    <!-- to use the minified version (the auth managers have been concatenated with the main file -->
-   <script src="../<path>/angulal-login.min.js
+   <script src="../<path>/angular-login.min.js
 ```
 this project depends on lodash or underscore, angular-logging, angular, angular-resource, angular-cookies, and http-auth-interceptor .js libraries
 
