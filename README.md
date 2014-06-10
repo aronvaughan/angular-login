@@ -101,6 +101,16 @@ $rootScope.$on('event:auth-logoutConfirmed', function(event, user) {
 });
 ```
 
+1. Events
+
+Events are broadcasted on $rootScope
+
+|  Name | params |  Description |
+| event:auth-loginConfirmed | event - TODO, user - the user returned from the remote login call | called on login  |
+| event:auth-logoutConfirmed | event - TODO | called on logout |
+| event:auth-logoutFailed | rejection - any data about the failure that we have | called when the login fails (bad username, pass, etc..) |
+
+
 5. Ajax token handling
 
 every api request to the service will call the auth manager to set the appropriate auth headers on the request to the
@@ -189,6 +199,10 @@ See example in source code
 ### v 0.0.1
 
 * initial release
+
+### v 0.0.4
+
+* handle login error with 401 response, broadcast failure event on login failure on $rootScope
 
 ## TODO
 

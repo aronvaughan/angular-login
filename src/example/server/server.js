@@ -41,7 +41,7 @@ app.post('/api/login', function(req, res) {
         res.send(JSON.stringify(currentUser));
     } else {
         console.log('SERVER - login error');
-        res.status(304).send("error!");
+        res.status(401).send("error!");
     }
 });
 

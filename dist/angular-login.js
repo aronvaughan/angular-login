@@ -38,17 +38,19 @@ var AVaughanLogin = AVaughanLogin || {
     },
     authService: undefined,
     logger: undefined,
+    $rootScope: undefined,
     construct: function (avaughanLoginConfig) {
       //this.logger.info('AVaughanLogin initialize called with config: ', [avaughanLoginConfig]);
       if (avaughanLoginConfig) {
         this.loginConfig = avaughanLoginConfig;
       }
     },
-    initialize: function (authService, avLog) {
+    initialize: function (authService, avLog, $rootScope) {
       this.logger = avLog.getLogger('AVaughanLogin');
       this.logger.debug('avaughan.login get called', authService);
       this.setAuthService(authService);
       this.getAuthManager().setLog(avLog);
+      this.$rootScope = $rootScope;
     },
     interceptHttpRequests: function ($httpProvider) {
       /**
@@ -76,12 +78,16 @@ var AVaughanLogin = AVaughanLogin || {
         self.authService.loginConfirmed(data, self.configUpdateFunction);
       }).error(function (data) {
         self.logger.error('login error: ' + data);
-        $rootScope.$broadcast('event:auth-loginFailed', data);
+        self.loginFailed(data);
       });
     },
     loginConfirmed: function (user) {
       this.logger.info('loginConfirmed', user);
       this.authService.loginConfirmed(user, this.configUpdateFunction);
+    },
+    loginFailed: function (rejection) {
+      this.logger.warn('broadcasting login failed: ');
+      this.$rootScope.$broadcast('event:auth-loginFailed', rejection);
     },
     logout: function ($http, $cookieStore, $rootScope) {
       this.logger.debug('logout called');
@@ -109,7 +115,7 @@ var AVaughanLogin = AVaughanLogin || {
         function ($q, $rootScope, $cookieStore) {
           return {
             'request': function (config) {
-              self.logger.debug('avaughan.login request interceptor!!!!', [
+              self.logger.debug('avaughan.login request interceptor - request!!!!', [
                 self.getAuthManager().getTokenValues($rootScope),
                 config
               ]);
@@ -124,6 +130,16 @@ var AVaughanLogin = AVaughanLogin || {
                 self.logger.debug('avaughan.login token is not available, or not rest call');
               }
               return config || $q.when(config);
+            },
+            'responseError': function (rejection) {
+              self.logger.error('avaughan.login request interceptor - responseError', rejection);
+              self.loginFailed(rejection);
+              return $q.reject(rejection);
+            },
+            'response': function (response) {
+              self.logger.debug('avaughan.login request interceptor - response', response);
+              // do something on success
+              return response;
             }
           };
         }
@@ -198,10 +214,11 @@ angular.module('avaughan.login').provider('avLogin', [
     this.$get = [
       'authService',
       'avLog',
-      function (authService, avLog) {
+      '$rootScope',
+      function (authService, avLog, $rootScope) {
         console.log('avaughan.login get called', authService);
         avaughanLogin.interceptHttpRequests($httpProvider);
-        avaughanLogin.initialize(authService, avLog);
+        avaughanLogin.initialize(authService, avLog, $rootScope);
         return avaughanLogin;
       }
     ];
