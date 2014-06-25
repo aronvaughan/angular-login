@@ -45,10 +45,21 @@ var AVaughanLoginConfig = {
      * if the authentication token is not found - should we auto redirect?
      */
     redirectIfTokenNotFound: false,
+
     /**
      * if the authentication token is not found - and we should auto redirect, what url should we go to for login?
      */
     redirectIfTokenNotFoundUrl: '/login',
+
+    /**
+     * do we redirect after login?
+     */
+    redirectAfterLogin: false,
+
+    /**
+     * where do we go after login  if we should redirect after login?
+     */
+    defaultUrlAfterLogin: '/',
 
     /**
      * abstract token storage/retrieval so impl is pluggable
@@ -117,7 +128,10 @@ var AVaughanLogin = AVaughanLogin || {
         }
     },
 
-    login: function(username, password, $http, $rootScope, $cookieStore) {
+    login: function(username, password, $http, $rootScope, $cookieStore, $location) {
+        this.logger.debug('service login called ', ['location', $location, 'http', $http,
+            '$rootScope', $rootScope, '$cookieStore', $cookieStore
+        ]);
         var postData = {};
         postData[this.loginConfig.loginUserLabel] = username;
         postData[this.loginConfig.loginPassLabel] = password;
@@ -125,9 +139,21 @@ var AVaughanLogin = AVaughanLogin || {
         var self = this;
         $http.post(this.loginConfig.loginUrlForRemote, postData, this.getAuthenticateHttpConfig).
         success(function(data) {
-            self.logger.info('Login successful for user: ', [username, data]);
+            self.logger.info('Login successful for user: ', [username, data, self.loginConfig]);
             self.getAuthManager().save(data, $rootScope, $cookieStore);
             self.authService.loginConfirmed(data, self.configUpdateFunction);
+            if (self.loginConfig.redirectAfterLogin) {
+                self.logger.info('should redirect after login', $location.path(), $location.search());
+                if ($location.search().originalUrl) {
+                    self.logger.info('original url found', $location.search().originalUrl);
+                    var url = $location.search().originalUrl;
+                    $location.search('originalUrl', null);
+                    $location.path(url);
+                } else {
+                    self.logger.info('using default url to redirect after login', $location.path().originalUrl);
+                    $location.path(self.loginConfig.defaultUrlAfterLogin);
+                }
+            }
         }).
         error(function(data) {
             self.logger.error('login error: ' + data);
@@ -178,8 +204,8 @@ var AVaughanLogin = AVaughanLogin || {
         }
 
         var self = this;
-        return ['$q', '$rootScope', '$cookieStore',
-            function($q, $rootScope, $cookieStore) {
+        return ['$q', '$rootScope', '$cookieStore', '$location',
+            function($q, $rootScope, $cookieStore, $location) {
                 return {
                     'request': function(config) {
                         self.logger.debug('avaughan.login request interceptor - request!!!!', [self.getAuthManager().getTokenValues($rootScope), config]);
@@ -196,6 +222,11 @@ var AVaughanLogin = AVaughanLogin || {
                     'responseError': function(rejection) {
                         self.logger.error('avaughan.login request interceptor - responseError', rejection);
                         self.loginFailed(rejection);
+                        if (rejection.status === 403 && self.loginConfig.redirectIfTokenNotFound) {
+                            self.logger.info('got 403 and configured to redirect', self.loginConfig.redirectIfTokenNotFoundUrl);
+                            $location.search('originalUrl', $location.path());
+                            $location.path(self.loginConfig.redirectIfTokenNotFoundUrl);
+                        }
                         return $q.reject(rejection);
                     },
 
@@ -238,6 +269,10 @@ var AVaughanLogin = AVaughanLogin || {
                     this.logger.debug('not authorized, routing', this.loginConfig.redirectIfTokenNotFoundUrl);
                 } else {
                     console.log('not authorized, routing', this.loginConfig.redirectIfTokenNotFoundUrl);
+                }
+                console.log('location.path ', $location.path(), this.loginConfig.redirectIfTokenNotFoundUrl);
+                if ($location.path() !== '' && $location.path() !== this.loginConfig.redirectIfTokenNotFoundUrl) {
+                    $location.search('originalUrl', $location.path());
                 }
                 $location.path(this.loginConfig.redirectIfTokenNotFoundUrl);
             }

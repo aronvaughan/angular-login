@@ -54,11 +54,11 @@ myApp.run(['$rootScope', '$cookieStore', '$location', 'avLogin',
 3. Login: In your controller where you handle login, use the new login functionality
 
 ```js
-angular.module('myApp').controller('testController', ['$scope', 'avLog', '$rootScope', 'avLogin', '$resource', '$http', '$cookieStore',
-    function($scope, avLog, $rootScope, avLogin, $resource, $http, $cookieStore) {
+angular.module('myApp').controller('testController', ['$scope', 'avLog', '$rootScope', 'avLogin', '$resource', '$http', '$cookieStore', '$location',
+    function($scope, avLog, $rootScope, avLogin, $resource, $http, $cookieStore, $location) {
 
        $scope.login = function() {
-            avLogin.login($scope.formData.name, $scope.formData.password, $http, $rootScope, $cookieStore);
+            avLogin.login($scope.formData.name, $scope.formData.password, $http, $rootScope, $cookieStore, $location);
         };
 
 }
@@ -159,6 +159,16 @@ var AVaughanLoginConfig = {
     redirectIfTokenNotFoundUrl: '/login',
 
     /**
+     * do we redirect after login?
+     */
+     redirectAfterLogin: false,
+
+    /**
+     * where do we go after login  if we should redirect after login?
+     */
+     defaultUrlAfterLogin: '/',
+
+    /**
      * abstract token storage/retrieval so impl is pluggable
      */
     authManager: _.extend(AVaughanLoginAuthManager, {})
@@ -203,6 +213,12 @@ See example in source code
 ### v 0.0.4
 
 * handle login error with 401 response, broadcast failure event on login failure on $rootScope
+
+### v 0.0.5
+
+* allow for redirect after login (and go to original url afterwards)
+* add default 'after login' and flag to re-route after login if no original url is found
+* if false, no interception happens
 
 ## TODO
 
