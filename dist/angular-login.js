@@ -1,5 +1,5 @@
 'use strict';
-/*global angular:true, console:true, localStorage: true*/
+/*global angular:true, console:true*/
 // //http://alvarosanchez.github.io/grails-spring-security-rest/docs/guide/introduction.html
 //http://asoftwareguy.com/
 // https://github.com/philipsorst/angular-rest-springsecurity/blob/master/src/main/webapp/js/app.js
@@ -81,14 +81,14 @@ var AVaughanLogin = AVaughanLogin || {
       postData[this.loginConfig.loginUserLabel] = username;
       postData[this.loginConfig.loginPassLabel] = password;
       var self = this;
-      $http.post(this.loginConfig.loginUrlForRemote, postData, this.getAuthenticateHttpConfig).success(function (data) {
+      $http.post(this.loginConfig.loginUrlForRemote, postData, this.loginConfig.getAuthenticateHttpConfig).success(function (data) {
         self.logger.info('Login successful for user: ', [
           username,
           data,
           self.loginConfig
         ]);
         self.getAuthManager().save(data, $rootScope, $cookieStore);
-        self.authService.loginConfirmed(data, self.configUpdateFunction);
+        self.authService.loginConfirmed(data, self.loginConfig.configUpdateFunction);
         if (self.loginConfig.redirectAfterLogin) {
           self.logger.info('should redirect after login', $location.path(), $location.search());
           if ($location.search().originalUrl) {
@@ -108,7 +108,7 @@ var AVaughanLogin = AVaughanLogin || {
     },
     loginConfirmed: function (user) {
       this.logger.info('loginConfirmed', user);
-      this.authService.loginConfirmed(user, this.configUpdateFunction);
+      this.authService.loginConfirmed(user, this.loginConfig.configUpdateFunction);
     },
     loginFailed: function (rejection) {
       this.logger.warn('broadcasting login failed: ');
@@ -117,7 +117,7 @@ var AVaughanLogin = AVaughanLogin || {
     logout: function ($http, $cookieStore, $rootScope) {
       this.logger.debug('logout called');
       var self = this;
-      $http.post(this.loginConfig.logoutUrlForRemote, {}, this.getHttpConfig()).success(function () {
+      $http.post(this.loginConfig.logoutUrlForRemote, {}, this.loginConfig.getHttpConfig).success(function () {
         self.logger.info('Logout successful');
         self.getAuthManager().clear($cookieStore, $rootScope);
         //remove any user data
@@ -209,25 +209,7 @@ var AVaughanLogin = AVaughanLogin || {
       } else {
         console.log('app.js routing to path complete', originalPath);
       }
-    },
-    getLocalToken: function () {
-      var authToken = localStorage.authToken;
-      this.logger.debug('AUTH TOKEN:' + authToken);
-      return authToken;
-    },
-    getHttpConfig: function () {
-      return { headers: { 'X-Auth-Token': this.getLocalToken() } };
-    },
-    getAuthenticateHttpConfig: function () {
-      return { ignoreAuthModule: true };
-    },
-    configUpdateFunction: function (config) {
-      if (!config.headers['X-Auth-Token']) {
-        console.log('X-Auth-Token not on original request; adding it');
-        config.headers['X-Auth-Token'] = this.getLocalToken();
-      }
-      return config;
-    }  //<<<<<<<<<<<< end FIXME::
+    }
   };
 //bind this to AVaughanLogin
 //_.bindAll(AVaughanLogin);

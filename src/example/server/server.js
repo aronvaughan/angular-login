@@ -1,10 +1,12 @@
 var application_root = __dirname,
     express = require("express"),
     path = require("path"),
-    bodyParser = require('body-parser');
+    bodyParser = require('body-parser'),
+    cookieParser = require('cookie-parser');
 
 var app = express();
 app.use(bodyParser());
+app.use(cookieParser());
 
 var loggedIn = false;
 var userName = "admin";
@@ -19,7 +21,7 @@ var currentUser = {};
  * get all the names registered
  */
 app.get('/api/userInfo', function(req, res) {
-    console.log("get userInfo, returning: ", currentUser);
+    console.log("get userInfo, returning: ", currentUser, loggedIn);
     res.send(JSON.stringify(currentUser));
 });
 
@@ -34,10 +36,13 @@ app.post('/api/login', function(req, res) {
         console.log('SERVER - login success');
         loggedIn = true;
         currentUser = adminUser;
+        //for spring rest security
         res.set({
             'X-Auth-Token': 'fakeToken'
         });
         currentUser.token = 'fakeToken';
+        //for spring based security
+        res.cookie('JSESSIONID', 'fakeToken');
         res.send(JSON.stringify(currentUser));
     } else {
         console.log('SERVER - login error');
@@ -48,8 +53,9 @@ app.post('/api/login', function(req, res) {
 app.get('/api/protectedCall', function(req, res) {
     console.log('SERVER - protected call, called');
     var headerValue = req.get('X-Auth-Token');
-    if (headerValue !== "fakeToken") {
-        console.log('SERVER - protected call error!', headerValue);
+    var cookieValue = req.cookies.JSESSIONID;
+    if (headerValue !== "fakeToken" && cookieValue !== 'fakeToken') {
+        console.log('SERVER - protected call error!', headerValue, cookieValue);
         res.status(403).send({
             'error': 'no token found!'
         });
@@ -58,6 +64,7 @@ app.get('/api/protectedCall', function(req, res) {
         res.set({
             'X-Auth-Token': 'fakeToken'
         });
+        res.cookie('JSESSIONID', 'fakeToken');
         res.send({
             'value1': 'good'
         });
@@ -71,6 +78,7 @@ app.post('/api/logout', function(req, res) {
     console.log('SERVER logging out ');
     loggedIn = false;
     currentUser = {};
+    res.clearCookie('JSESSIONID');
     res.send(JSON.stringify("{messsage: successfully logged out}"));
 
 });

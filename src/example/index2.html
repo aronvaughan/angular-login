@@ -18,8 +18,8 @@ Is Logged In: {{isLoggedIn()}}
            <div class="col-md-offset-4 col-md-4">
                <form ng-cloak class="form-signin ng-cloak" role="form" ng-submit="login()">
                    <h2 ng-cloak class="form-signin-heading">Please sign in</h2>
-                   <input ng-cloak type="text"  name='j_username' id='username' class="form-control" placeholder="User Name" required autofocus ng-model="formData.name">
-                   <input ng-cloak type="password" name='j_password' id='password' class="form-control" placeholder="Password" required ng-model="formData.password">
+                   <input ng-cloak type="text"  name='username' id='username' class="form-control" placeholder="User Name" required autofocus ng-model="formData.name">
+                   <input ng-cloak type="password" name='password' id='password' class="form-control" placeholder="Password" required ng-model="formData.password">
                    <button ng-cloak class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
                </form>
            </div>
@@ -55,7 +55,7 @@ Is Logged In: {{isLoggedIn()}}
 
       <br/>
       <br/>
-      REST Spring Security Plugin Example | <a href="/example/index2.html">Spring Security Example</a>
+      <a href="/example/index.html">REST Spring Security Plugin Example</a> | Spring Security Example
       <br/>
   <!-- build:js scripts/components.min.js -->
   <!-- bower:js -->
@@ -69,7 +69,7 @@ Is Logged In: {{isLoggedIn()}}
   <!-- endbuild -->
 
   <!-- build:js scripts/app.min.js -->
-  <script src="../authManager/authManager_grailsSpringSecurityRest.js"></script>
+  <script src="../authManager/authManager_springSecurity.js"></script>
   <script src="../angular-login.js"></script>
 
        <!--
@@ -80,7 +80,7 @@ Is Logged In: {{isLoggedIn()}}
 
 
       </script>
-  <script src="scripts/app.js"></script>
+  <script src="scripts/app2.js"></script>
   <script src="scripts/testController.js"></script>
   <!-- endbuild -->
 

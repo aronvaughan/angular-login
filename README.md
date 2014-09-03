@@ -220,6 +220,16 @@ See example in source code
 * add default 'after login' and flag to re-route after login if no original url is found
 * if false, no interception happens
 
+### v 0.0.6
+
+* added Spring Security Auth Manager - see app2.js in this code to use:
+
+```Example
+        var loginConfig = AVaughanLoginConfigFactory.create({
+            someProperty: 'new value'
+        }, SpringSecurityAuthManager);
+```
+
 ## TODO
 
 * figure out integration tests (angular only allows unit or functional)
@@ -256,3 +266,8 @@ to see the example app
 1. grunt serve
 2. make sure you have developer tools/firebug, etc.. open so you can see console logs
 
+
+## To Release
+1. grunt build
+2. commit files
+3. grunt release

@@ -183,6 +183,9 @@ module.exports = function(grunt) {
                 }, {
                     src: '<%= yo.src %>/authManager/authManager_grailsSpringSecurityRest.js',
                     dest: '<%= yo.dist %>/authManager/authManager_grailsSpringSecurityRest.js'
+                }, {
+                    src: '<%= yo.src %>/authManager/authManager_springSecurity.js',
+                    dest: '<%= yo.dist %>/authManager/authManager_springSecurity.js'
                 }]
             }
             // dist: {
@@ -197,7 +200,7 @@ module.exports = function(grunt) {
                 stripBanners: true
             },
             dist: {
-                src: ['<%= yo.src %>/authManager/authManager_grailsSpringSecurityRest.js', '<%= yo.src %>/<%= pkg.name %>.js'],
+                src: ['<%= yo.src %>/authManager/authManager_grailsSpringSecurityRest.js', '<%= yo.src %>/authManager/authManager_springSecurity.js', '<%= yo.src %>/<%= pkg.name %>.js'],
                 dest: '<%= yo.dist %>/<%= pkg.name %>.min.js'
             }
         },
