@@ -30,9 +30,17 @@ app.get('/api/userInfo', function(req, res) {
  */
 app.post('/api/login', function(req, res) {
     var body = req.body;
-    console.log('SERVER logging in : ' + JSON.stringify(body));
 
-    if (userName === body.username && passWord === body.password) {
+    console.log('SERVER logging in : ' + body, req.get('Content-Type')); //JSON.stringify(body)
+
+    var passesAuth = false;
+    if (req.get('Content-Type').indexOf('application/x-www-form-urlencoded') > -1 && userName === body.username && passWord === body.password) {
+        passesAuth = true;
+    } else if (req.get('Content-Type').indexOf('application/json') > -1 && (userName === body.username && passWord === body.password)) {
+        passesAuth = true;
+    }
+
+    if (passesAuth) {
         console.log('SERVER - login success');
         loggedIn = true;
         currentUser = adminUser;

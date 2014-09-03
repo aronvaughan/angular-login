@@ -62,6 +62,11 @@ var AVaughanLoginConfig = {
     defaultUrlAfterLogin: '/',
 
     /**
+     * do we do form encoding or json object posting?
+     */
+    postType: 'JSON', //alternate is FORM
+
+    /**
      * abstract token storage/retrieval so impl is pluggable
      */
     authManager: undefined, //_.extend(AVaughanLoginAuthManager, {})
@@ -138,16 +143,43 @@ var AVaughanLogin = AVaughanLogin || {
         this.logger.debug('service login called ', ['location', $location, 'http', $http,
             '$rootScope', $rootScope, '$cookieStore', $cookieStore
         ]);
+
+        var self = this;
+
+        var headers = 'application/json';
         var postData = {};
         postData[this.loginConfig.loginUserLabel] = username;
         postData[this.loginConfig.loginPassLabel] = password;
 
-        var self = this;
-        $http.post(this.loginConfig.loginUrlForRemote, postData, this.loginConfig.getAuthenticateHttpConfig).
+        //var postData = "username=CharlesOwen&password=charlesowen";
+        if (this.loginConfig.postType === 'FORM') {
+            headers = 'application/x-www-form-urlencoded';
+            /*
+            var postObject = [{}, {}];
+            postObject[0].name = this.loginConfig.loginUserLabel;
+            postObject[0].value = username;
+            postObject[1].name = this.loginConfig.loginPassLabel;
+            postObject[1].value = password;
+            postData = $.param(postObject);
+            */
+            postData = this.loginConfig.loginUserLabel + '=' + username + '&' + this.loginConfig.loginPassLabel + '=' + password;
+        }
+
+        this.logger.debug('Post type: ' + this.loginConfig.postType + 'value: ', postData);
+
+        $http({
+            method: 'POST',
+            url: this.loginConfig.loginUrlForRemote,
+            data: postData,
+            headers: {
+                'Content-Type': headers
+            }
+        }).
+        //$http.post(this.loginConfig.loginUrlForRemote, postData, this.getAuthenticateHttpConfig).
         success(function(data) {
             self.logger.info('Login successful for user: ', [username, data, self.loginConfig]);
             self.getAuthManager().save(data, $rootScope, $cookieStore);
-            self.authService.loginConfirmed(data, self.loginConfig.configUpdateFunction);
+            self.authService.loginConfirmed(data, self.configUpdateFunction);
             if (self.loginConfig.redirectAfterLogin) {
                 self.logger.info('should redirect after login', $location.path(), $location.search());
                 if ($location.search().originalUrl) {

@@ -269,5 +269,6 @@ to see the example app
 
 ## To Release
 1. grunt build
+2. add release notes in README.md
 2. commit files
-3. grunt release
+3. grunt release (will commit files and bump bower versions)

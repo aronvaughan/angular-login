@@ -24,7 +24,8 @@ myApp.config(['avLogProvider', 'avLevel', 'avLoginProvider',
         //initialize and override 'someProperty' as well as choose with AuthManager to use (should handle
         //whatever backend tokens are sent by the server session provider
         var loginConfig = AVaughanLoginConfigFactory.create({
-            someProperty: 'new value'
+            someProperty: 'new value',
+            postType: 'FORM'
         }, SpringSecurityAuthManager);
 
         //initilize login with our config...
