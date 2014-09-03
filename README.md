@@ -220,15 +220,18 @@ See example in source code
 * add default 'after login' and flag to re-route after login if no original url is found
 * if false, no interception happens
 
-### v 0.0.6
+### v 0.0.6 - DO NOT USE
 
 * added Spring Security Auth Manager - see app2.js in this code to use:
 
 ```Example
         var loginConfig = AVaughanLoginConfigFactory.create({
-            someProperty: 'new value'
+            someProperty: 'new value',
+            postType: 'FORM'
         }, SpringSecurityAuthManager);
 ```
+
+### v 0.0.7 - fixed bug in 0.0.6 handling for form posting/spring security
 
 ## TODO
 
