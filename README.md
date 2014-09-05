@@ -43,10 +43,10 @@ authManager before including angular-login-service.js
 
 ```js
 // run blocks
-myApp.run(['$rootScope', '$cookieStore', '$location', 'avLogin',
-    function($rootScope, $cookieStore, $location, avLogin) {
+myApp.run(['$rootScope', '$cookieStore', '$location', '$cookies', 'avLogin',
+    function($rootScope, $cookieStore, $location, $cookies, avLogin) {
         /* Try getting valid user from cookie or go to login page */
-        avLogin.checkRequest($location, $cookieStore, $rootScope);
+        avLogin.checkRequest($location, $cookieStore, $cookies, $rootScope);
     }
 ]);
 ```
@@ -109,6 +109,7 @@ Events are broadcasted on $rootScope
 | event:auth-loginConfirmed | event - TODO, user - the user returned from the remote login call | called on login  |
 | event:auth-logoutConfirmed | event - TODO | called on logout |
 | event:auth-logoutFailed | rejection - any data about the failure that we have | called when the login fails (bad username, pass, etc..) |
+| event:auth-loginRequired | event | called when the interceptor detects that login is needed, if you specify 'redirectIfTokenNotFound' and a url then you don't need this event |
 
 
 5. Ajax token handling
@@ -125,7 +126,6 @@ var AVaughanLoginConfig = {
      * how do we know what calls to intercept?  anything with this in it will
      * be intercepted and checked for login status and security tokens will
      * be placed on the request by the auth manager
-     */
      */
     restCallsWillContain: 'api',
 
@@ -153,6 +153,7 @@ var AVaughanLoginConfig = {
      * if the authentication token is not found - should we auto redirect?
      */
     redirectIfTokenNotFound: false,
+
     /**
      * if the authentication token is not found - and we should auto redirect, what url should we go to for login?
      */
@@ -161,20 +162,19 @@ var AVaughanLoginConfig = {
     /**
      * do we redirect after login?
      */
-     redirectAfterLogin: false,
+    redirectAfterLogin: false,
 
     /**
      * where do we go after login  if we should redirect after login?
      */
-     defaultUrlAfterLogin: '/',
+    defaultUrlAfterLogin: '/',
 
     /**
-     * abstract token storage/retrieval so impl is pluggable
+     * do we do form encoding or json object posting?
      */
-    authManager: _.extend(AVaughanLoginAuthManager, {})
+    postType: 'JSON', //alternate is FORM
 
 };
-
 ```
 
 To override these settings
@@ -232,6 +232,69 @@ See example in source code
 ```
 
 ### v 0.0.7 - fixed bug in 0.0.6 handling for form posting/spring security
+
+### v 0.0.8 - moved the spring security to use a token based header vs. a cookie (older versions of grails do not honor the httpOnly config or 'withCredentials'
+you will need to do the following (this example in grails)
+
+```Server side Token Filter
+/**
+ * Filter that writes the session token to a header
+ * the correct fix is to modify the system to not set the httpOnly header on the JSESSIONID - our version
+ * of grails does not honor the servlet spec setting and config
+ *
+ * User: aronvaughan
+ * Date: 9/4/14
+ * To change this template use File | Settings | File Templates.
+ */
+class SessionTokenFilter extends GenericFilterBean {
+
+    private static final Logger log = Logger.getLogger(SessionTokenFilter.class);
+
+    public final static String HEADER_NAME = "X-authtoken"
+
+    @Override
+    void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        HttpServletRequest servletRequest = request
+
+        log.debug "Looking for session in request...${servletRequest.cookies}"
+        String tokenValue
+        servletRequest.cookies.each {
+            log.debug "${it.name} == ${it.value} "
+            if (it.name.equals("JSESSIONID")) {
+                log.debug(" found JSESSIONID ${it.value}")
+                tokenValue = it.value
+            }
+        }
+
+        if (tokenValue) {
+            log.debug "Token found: ${tokenValue}"
+
+            HttpServletResponse servletResponse = response
+            def c = new Cookie(HEADER_NAME, tokenValue)
+            c.maxAge = SystemSettings.getCurrentSettings().getSessionTimeout() * 60;
+            servletResponse.addCookie(c)
+
+            servletResponse.addHeader(HEADER_NAME, tokenValue)
+        } else {
+            log.debug "Token not found"
+        }
+        chain.doFilter(request, response)
+
+    }
+}
+```
+
+```resource.groovy - wire the bean in spring
+    sessionTokenFilter(SessionTokenFilter) {
+
+    }
+```
+
+```Bootstrap.groovy - wire the filter
+ def init = { servletContext ->
+    SpringSecurityUtils.clientRegisterFilter 'sessionTokenFilter', SecurityFilterPosition.ANONYMOUS_FILTER.order + 1
+ }
+ ```
 
 ## TODO
 

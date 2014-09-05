@@ -17,6 +17,9 @@ var adminUser = {
 };
 var currentUser = {};
 
+var springSecurityToken = 'X-authtoken';
+var springRestSecurityToken = 'X-Auth-Token';
+
 /**
  * get all the names registered
  */
@@ -24,6 +27,17 @@ app.get('/api/userInfo', function(req, res) {
     console.log("get userInfo, returning: ", currentUser, loggedIn);
     res.send(JSON.stringify(currentUser));
 });
+
+var setResponse = function(res) {
+    //for spring rest security
+    res.set({
+        'X-Auth-Token': 'fakeToken', //spring rest security
+        'X-authtoken': 'fakeToken' // spring security with httpOnly = true
+    });
+
+    //for spring based security
+    res.cookie(springSecurityToken, 'fakeToken');
+};
 
 /**
  * login
@@ -44,13 +58,10 @@ app.post('/api/login', function(req, res) {
         console.log('SERVER - login success');
         loggedIn = true;
         currentUser = adminUser;
-        //for spring rest security
-        res.set({
-            'X-Auth-Token': 'fakeToken'
-        });
+        //setup response correctly
+        setResponse(res);
         currentUser.token = 'fakeToken';
-        //for spring based security
-        res.cookie('JSESSIONID', 'fakeToken');
+
         res.send(JSON.stringify(currentUser));
     } else {
         console.log('SERVER - login error');
@@ -60,19 +71,19 @@ app.post('/api/login', function(req, res) {
 
 app.get('/api/protectedCall', function(req, res) {
     console.log('SERVER - protected call, called');
-    var headerValue = req.get('X-Auth-Token');
-    var cookieValue = req.cookies.JSESSIONID;
-    if (headerValue !== "fakeToken" && cookieValue !== 'fakeToken') {
+    var headerValue = req.get(springRestSecurityToken);
+    var cookieValue = req.cookies[springSecurityToken];
+    var headerValueSpringSecurity = req.get(springRestSecurityToken);
+
+    if (headerValue !== "fakeToken" && cookieValue !== 'fakeToken' && headerValueSpringSecurity !== 'fakeToken') {
         console.log('SERVER - protected call error!', headerValue, cookieValue);
         res.status(403).send({
             'error': 'no token found!'
         });
     } else {
         console.log('SERVER - protected call success!', headerValue);
-        res.set({
-            'X-Auth-Token': 'fakeToken'
-        });
-        res.cookie('JSESSIONID', 'fakeToken');
+        //setup response correctly
+        setResponse(res);
         res.send({
             'value1': 'good'
         });
@@ -86,7 +97,7 @@ app.post('/api/logout', function(req, res) {
     console.log('SERVER logging out ');
     loggedIn = false;
     currentUser = {};
-    res.clearCookie('JSESSIONID');
+    res.clearCookie(springSecurityToken);
     res.send(JSON.stringify("{messsage: successfully logged out}"));
 
 });

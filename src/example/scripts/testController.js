@@ -26,7 +26,7 @@ angular.module('myApp').controller('testController', ['$scope', 'avLog', '$rootS
 
         $scope.isLoggedIn = function() {
             logger.debug("controller isLoggedIn called start", $scope.loggedIn);
-            if (avLogin.isTokenAvailable($rootScope) && !$scope.loggedIn) {
+            if (avLogin.isTokenAvailable($rootScope, $cookieStore) && !$scope.loggedIn) {
                 console.log("isLogged in called, token is available but not logged in");
                 $scope.loggedIn = true; //this is likely true.... but a call to a remote secure method or user check can double verify...
                 if ($scope.userInfo === undefined || $scope.userInfo.name === undefined) {

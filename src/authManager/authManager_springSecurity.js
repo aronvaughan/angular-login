@@ -5,10 +5,12 @@ var SpringSecurityAuthManager = {
 
     name: 'SpringSecurityAuthManager',
 
-    useAuthTokenHeader: false,
+    useAuthTokenHeader: true,
     userUrlHeader: false,
 
     logger: undefined,
+
+    tokenName: 'X-authtoken',
 
     getName: function() {
         return this.name;
@@ -19,43 +21,55 @@ var SpringSecurityAuthManager = {
     },
 
     setAuthOnRequest: function($rootScope, config) {
-        var JSESSIONID = $rootScope.JSESSIONID;
+
+        var sessionToken = $rootScope[this.tokenName];
         if (this.useAuthTokenHeader) {
-            this.logger.debug('TOKEN_MANAGER, setting JSESSIONID header', JSESSIONID);
-            config.headers['JSESSIONID'] = JSESSIONID;
+            this.logger.debug('TOKEN_MANAGER, setting ' + this.tokenName + ' header', sessionToken);
+            config.headers[this.tokenName] = sessionToken;
         } else if (this.useUrlHeader) {
             this.logger.debug('use url token');
-            config.url = config.url + '?jsessionid=' + JSESSIONID;
+            config.url = config.url + '?jsessionid=' + sessionToken;
         }
     },
 
-    isTokenAvailable: function($rootScope, $cookieStore) {
+    isTokenAvailable: function($rootScope, $cookieStore, $cookies) {
+        this.logger.debug('isTokenAvailable?', $cookies);
         this.load($cookieStore, $rootScope);
-        return angular.isDefined($rootScope.JSESSIONID);
+        this.logger.debug('isTokenAvailable?', [$cookieStore, $rootScope[this.tokenName], angular.isDefined($rootScope[this.tokenName])]);
+        return angular.isDefined($rootScope[this.tokenName]);
     },
 
     getTokenValues: function($rootScope) {
-        return [$rootScope.JSESSIONID];
+        return [$rootScope[this.tokenName]];
     },
 
     load: function($cookieStore, $rootScope) {
-        var JSESSIONID;
+        this.logger.debug("[AuthManager] load, cookieStore", [$cookieStore, $cookieStore.get(this.tokenName)]);
+        this.logger.debug('load - BROWSER COOKIES!!!', document.cookie);
+
+        var sessionToken;
         if ($cookieStore) {
-            JSESSIONID = $cookieStore.get('JSESSIONID');
+            sessionToken = $cookieStore.get(this.tokenName);
         } else {
-            console.log('TOKEN_MANAGER: WARN $cookieStore is undefined');
+            console.log('TOKEN_MANAGER: WARN $cookieStore is undefined, trying localstorage');
+            sessionToken = localStorage[this.tokenName];
         }
-        if (JSESSIONID !== undefined) {
-            console.log('TOKEN_MANAGER, load, got valid value from cookie', JSESSIONID);
-            $rootScope.JSESSIONID = JSESSIONID;
+        if (sessionToken !== undefined) {
+            console.log('TOKEN_MANAGER, load, got valid value from cookie', sessionToken);
+            $rootScope[this.tokenName] = sessionToken;
+        } else {
+            console.log('TOKEN_MANAGER, load, no valid value from cookie', sessionToken);
         }
     },
 
-    save: function(dataFromLoginPost, $rootScope, $cookieStore) {
-        this.logger.debug('save, authentication token: ' + dataFromLoginPost.token, dataFromLoginPost);
-        localStorage.JSESSIONID = dataFromLoginPost.token;
-        $rootScope.JSESSIONID = dataFromLoginPost.token;
-        $cookieStore.put('JSESSIONID', dataFromLoginPost.token);
+    save: function(dataFromLoginPost, $rootScope, $cookieStore, headers) {
+        this.logger.debug('save, authentication token: ' + headers(this.tokenName));
+        this.logger.debug('save - BROWSER COOKIES!!!', document.cookie);
+
+        localStorage[this.tokenName] = headers(this.tokenName);
+        $rootScope[this.tokenName] = headers(this.tokenName);
+        $cookieStore.put(this.tokenName, headers(this.tokenName));
+
         /*  $cookieStore('JSESSIONID', auth_hash.JSESSIONID);
          $cookieStore('grails_remember_me', auth_hash.JSESSIONID);
          $cookieStore('SessionProxyFilter_SessionId', auth_hash.JSESSIONID);   */
@@ -64,23 +78,22 @@ var SpringSecurityAuthManager = {
     clear: function($cookieStore, $rootScope) {
         this.logger.debug('logout success, clearing tokens');
         localStorage.clear();
-        $cookieStore.remove('JSESSIONID');
+        $cookieStore.remove(this.tokenName);
         //right?!
-        $rootScope.JSESSIONID = undefined;
+        $rootScope[this.tokenName] = undefined;
     },
 
     getLocalToken: function() {
-        var authToken = localStorage.JSESSIONID;
+        var authToken = localStorage[this.tokenName];
         this.logger.debug('AUTH TOKEN:' + authToken);
         return authToken;
     },
 
     getHttpConfig: function() {
-        return {
-            headers: {
-                'JSESSIONID': this.getLocalToken()
-            }
-        };
+
+        var headers = {};
+        headers[this.tokenName] = this.getLocalToken();
+        return headers;
     },
 
     getAuthenticateHttpConfig: function() {
@@ -90,9 +103,9 @@ var SpringSecurityAuthManager = {
     },
 
     configUpdateFunction: function(config) {
-        if (!config.headers['JSESSIONID']) {
-            this.logger.debug('JSESSIONID not on original request; adding it');
-            config.headers['JSESSIONID'] = this.getLocalToken();
+        if (!config.headers[this.tokenName]) {
+            this.logger.debug(this.tokenName + ' not on original request; adding it');
+            config.headers[this.tokenName] = this.getLocalToken();
         }
         return config;
     }

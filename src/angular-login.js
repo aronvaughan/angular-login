@@ -71,12 +71,6 @@ var AVaughanLoginConfig = {
      */
     authManager: undefined, //_.extend(AVaughanLoginAuthManager, {})
 
-    //useTokenHeader: true //if true, sets a http header value to pass the session info, if false passes it in on the url
-
-    //tokenHeaderName: 'X-Auth-Token',
-
-
-
     setAuthManager: function(authManager) {
         this.authManager = _.extend(authManager, {});
     }
@@ -146,22 +140,18 @@ var AVaughanLogin = AVaughanLogin || {
 
         var self = this;
 
-        var headers = 'application/json';
+        var headers = {
+            'Content-Type': 'application/json'
+        };
         var postData = {};
         postData[this.loginConfig.loginUserLabel] = username;
         postData[this.loginConfig.loginPassLabel] = password;
 
         //var postData = "username=CharlesOwen&password=charlesowen";
         if (this.loginConfig.postType === 'FORM') {
-            headers = 'application/x-www-form-urlencoded';
-            /*
-            var postObject = [{}, {}];
-            postObject[0].name = this.loginConfig.loginUserLabel;
-            postObject[0].value = username;
-            postObject[1].name = this.loginConfig.loginPassLabel;
-            postObject[1].value = password;
-            postData = $.param(postObject);
-            */
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            };
             postData = this.loginConfig.loginUserLabel + '=' + username + '&' + this.loginConfig.loginPassLabel + '=' + password;
         }
 
@@ -171,14 +161,14 @@ var AVaughanLogin = AVaughanLogin || {
             method: 'POST',
             url: this.loginConfig.loginUrlForRemote,
             data: postData,
-            headers: {
-                'Content-Type': headers
-            }
+            headers: headers,
+            ignoreAuthModule: true,
+            withCredentials: true
         }).
         //$http.post(this.loginConfig.loginUrlForRemote, postData, this.getAuthenticateHttpConfig).
-        success(function(data) {
-            self.logger.info('Login successful for user: ', [username, data, self.loginConfig]);
-            self.getAuthManager().save(data, $rootScope, $cookieStore);
+        success(function(data, status, headers, config) {
+            self.logger.info('Login successful for user: ', [username, data, status, headers, config, self.loginConfig]);
+            self.getAuthManager().save(data, $rootScope, $cookieStore, headers);
             self.authService.loginConfirmed(data, self.configUpdateFunction);
             if (self.loginConfig.redirectAfterLogin) {
                 self.logger.info('should redirect after login', $location.path(), $location.search());
@@ -193,8 +183,8 @@ var AVaughanLogin = AVaughanLogin || {
                 }
             }
         }).
-        error(function(data) {
-            self.logger.error('login error: ' + data);
+        error(function(data, status, headers, config) {
+            self.logger.error('login error: ', data, status, headers, config);
             self.loginFailed(data);
         });
     },
@@ -233,7 +223,6 @@ var AVaughanLogin = AVaughanLogin || {
      *
      * @returns {Function}
      */
-
     getRequestInterceptor: function() {
         if (this.logger) {
             this.logger.debug('get request interceptor called');
@@ -246,13 +235,22 @@ var AVaughanLogin = AVaughanLogin || {
             function($q, $rootScope, $cookieStore, $location) {
                 return {
                     'request': function(config) {
-                        self.logger.debug('avaughan.login request interceptor - request!!!!', [self.getAuthManager().getTokenValues($rootScope), config]);
+                        console.log('requestInterceptor - BROWSER COOKIES!!!', document.cookie);
+                        if (self.logger) {
+                            self.logger.debug('avaughan.login request interceptor - request!!!!', [self.getAuthManager().getTokenValues($rootScope), config]);
+                        }
+
                         var isRestCall = config.url.indexOf(self.loginConfig.restCallsWillContain) >= 0;
-                        self.logger.debug('avaughan.login request is rest call?', [isRestCall, config.url]);
+                        if (self.logger) {
+                            self.logger.debug('avaughan.login request is rest call?', [isRestCall, config.url]);
+                        }
+
                         if (isRestCall && self.getAuthManager().isTokenAvailable($rootScope, $cookieStore)) {
                             self.getAuthManager().setAuthOnRequest($rootScope, config);
                         } else {
-                            self.logger.debug('avaughan.login token is not available, or not rest call');
+                            if (self.logger) {
+                                self.logger.debug('avaughan.login token is not available, or not rest call', config.url);
+                            }
                         }
                         return config || $q.when(config);
                     },
@@ -269,7 +267,11 @@ var AVaughanLogin = AVaughanLogin || {
                     },
 
                     'response': function(response) {
-                        self.logger.debug('avaughan.login request interceptor - response', response);
+                        if (self.logger) {
+                            self.logger.debug('avaughan.login request interceptor - response', response);
+                        }
+                        console.log('BROWSER COOKIES!!!', document.cookie);
+
                         // do something on success
                         return response;
                     }
@@ -287,16 +289,16 @@ var AVaughanLogin = AVaughanLogin || {
      * @param $location
      * @param $cookeStore
      */
-    checkRequest: function($location, $cookieStore, $rootScope) {
+    checkRequest: function($location, $cookieStore, $cookies, $rootScope) {
         /* Try getting valid user from cookie or go to login page */
         var originalPath = $location.path();
         this.getAuthManager().load($cookieStore, $rootScope);
-        if (this.getAuthManager().isTokenAvailable($rootScope, $cookieStore)) {
+        if (this.getAuthManager().isTokenAvailable($rootScope, $cookieStore, $cookies)) {
 
             if (this.logger) {
                 this.logger.debug('app.js routing to path', originalPath);
             } else {
-                console.log('app.js routing to path', originalPath);
+                console.log('[avLogin] checkRequest - app.js routing to path', originalPath);
             }
             $location.path(originalPath);
 
@@ -308,7 +310,7 @@ var AVaughanLogin = AVaughanLogin || {
                 } else {
                     console.log('not authorized, routing', this.loginConfig.redirectIfTokenNotFoundUrl);
                 }
-                console.log('location.path ', $location.path(), this.loginConfig.redirectIfTokenNotFoundUrl);
+                console.log('[avLogin] checkRequest - location.path ', $location.path(), this.loginConfig.redirectIfTokenNotFoundUrl);
                 if ($location.path() !== '' && $location.path() !== this.loginConfig.redirectIfTokenNotFoundUrl) {
                     $location.search('originalUrl', $location.path());
                 }
@@ -340,8 +342,8 @@ angular.module('avaughan.login').provider('avLogin', ['$httpProvider',
         this.$get = ['authService', 'avLog', '$rootScope',
             function(authService, avLog, $rootScope) {
                 console.log('avaughan.login get called', authService);
-                avaughanLogin.interceptHttpRequests($httpProvider);
                 avaughanLogin.initialize(authService, avLog, $rootScope);
+                avaughanLogin.interceptHttpRequests($httpProvider);
                 return avaughanLogin;
             }
         ];

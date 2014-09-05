@@ -20,8 +20,12 @@ var GrailsSpringSecurityRestAuthManager = {
         config.url = config.url + '?token=' + authToken;
       }
     },
-    isTokenAvailable: function ($rootScope, $cookieStore) {
+    isTokenAvailable: function ($rootScope, $cookieStore, $cookies) {
       this.load($cookieStore, $rootScope);
+      this.logger.debug('isTokenAvailable?', [
+        $cookieStore,
+        $rootScope.authToken
+      ]);
       return angular.isDefined($rootScope.authToken);
     },
     getTokenValues: function ($rootScope) {
@@ -39,7 +43,7 @@ var GrailsSpringSecurityRestAuthManager = {
         $rootScope.authToken = authToken;
       }
     },
-    save: function (dataFromLoginPost, $rootScope, $cookieStore) {
+    save: function (dataFromLoginPost, $rootScope, $cookieStore, headers) {
       this.logger.debug('save, authentication token: ' + dataFromLoginPost.token, dataFromLoginPost);
       localStorage.authToken = dataFromLoginPost.token;
       $rootScope.authToken = dataFromLoginPost.token;
