@@ -133,6 +133,10 @@ var AVaughanLogin = AVaughanLogin || {
         }
     },
 
+    toLogin: function($location) {
+        $location.path(this.loginConfig.redirectIfTokenNotFoundUrl);
+    },
+
     login: function(username, password, $http, $rootScope, $cookieStore, $location) {
         this.logger.debug('service login called ', ['location', $location, 'http', $http,
             '$rootScope', $rootScope, '$cookieStore', $cookieStore

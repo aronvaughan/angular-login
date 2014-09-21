@@ -296,6 +296,10 @@ class SessionTokenFilter extends GenericFilterBean {
  }
  ```
 
+### 0.0.9
+
+Add toLogin($location) {} method to allow callers to force a login screen call - redirectIfTokenNotFoundUrl must be defined
+
 ## TODO
 
 * figure out integration tests (angular only allows unit or functional)

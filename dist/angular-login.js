@@ -67,6 +67,9 @@ var AVaughanLogin = AVaughanLogin || {
         this.authService = authService;
       }
     },
+    toLogin: function ($location) {
+      $location.path(this.loginConfig.redirectIfTokenNotFoundUrl);
+    },
     login: function (username, password, $http, $rootScope, $cookieStore, $location) {
       this.logger.debug('service login called ', [
         'location',
