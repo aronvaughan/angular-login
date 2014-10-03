@@ -9,12 +9,22 @@ var GrailsSpringSecurityRestAuthManager = {
 
     logger: undefined,
 
+    tokenName: 'X-Auth-Token',
+
     getName: function() {
         return this.name;
     },
 
     setLog: function(avLog) {
         this.logger = avLog.getLogger('AuthManager');
+    },
+
+    getHeader: function($rootScope) {
+        var headers = {};
+        if (this.getTokenValues($rootScope)) {
+            headers[this.tokenName] = this.getTokenValues($rootScope)[0];
+        }
+        return headers;
     },
 
     setAuthOnRequest: function($rootScope, config) {

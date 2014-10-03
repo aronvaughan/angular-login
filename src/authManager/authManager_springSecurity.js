@@ -20,6 +20,14 @@ var SpringSecurityAuthManager = {
         this.logger = avLog.getLogger('AuthManager');
     },
 
+    getHeader: function($rootScope) {
+        var headers = {};
+        if (this.getTokenValues($rootScope)) {
+            headers[this.tokenName] = this.getTokenValues($rootScope)[0];
+        }
+        return headers;
+    },
+
     setAuthOnRequest: function($rootScope, config) {
 
         var sessionToken = $rootScope[this.tokenName];

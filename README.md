@@ -300,6 +300,10 @@ class SessionTokenFilter extends GenericFilterBean {
 
 Add toLogin($location) {} method to allow callers to force a login screen call - redirectIfTokenNotFoundUrl must be defined
 
+### 0.0.10
+
+add getHeader() method to auth manager (can be used to also configure non angular calls - i.e. dropzone headers)
+
 ## TODO
 
 * figure out integration tests (angular only allows unit or functional)
