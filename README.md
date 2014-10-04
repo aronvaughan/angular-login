@@ -304,6 +304,11 @@ Add toLogin($location) {} method to allow callers to force a login screen call -
 
 add getHeader() method to auth manager (can be used to also configure non angular calls - i.e. dropzone headers)
 
+### 0.0.11
+
+allow json token name to be specified for spring rest security - default to 'access_token' to match latest grails side release
+if you aren't getting the cookie value set, look here (and check the login response from the service, the json return value token name should match)
+
 ## TODO
 
 * figure out integration tests (angular only allows unit or functional)
