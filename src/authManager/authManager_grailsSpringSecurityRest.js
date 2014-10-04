@@ -11,6 +11,8 @@ var GrailsSpringSecurityRestAuthManager = {
 
     tokenName: 'X-Auth-Token',
 
+    jsonResponseTokenName: 'access_token',
+
     getName: function() {
         return this.name;
     },
@@ -62,10 +64,10 @@ var GrailsSpringSecurityRestAuthManager = {
     },
 
     save: function(dataFromLoginPost, $rootScope, $cookieStore, headers) {
-        this.logger.debug('save, authentication token: ' + dataFromLoginPost.token, dataFromLoginPost);
-        localStorage.authToken = dataFromLoginPost.token;
-        $rootScope.authToken = dataFromLoginPost.token;
-        $cookieStore.put('authToken', dataFromLoginPost.token);
+        this.logger.debug('save, authentication token: ' + dataFromLoginPost[this.jsonResponseTokenName], dataFromLoginPost);
+        localStorage.authToken = dataFromLoginPost[this.jsonResponseTokenName];
+        $rootScope.authToken = dataFromLoginPost[this.jsonResponseTokenName];
+        $cookieStore.put('authToken', dataFromLoginPost[this.jsonResponseTokenName]);
         /*  $cookieStore('JSESSIONID', auth_hash.JSESSIONID);
          $cookieStore('grails_remember_me', auth_hash.JSESSIONID);
          $cookieStore('SessionProxyFilter_SessionId', auth_hash.JSESSIONID);   */
