@@ -311,7 +311,10 @@ if you aren't getting the cookie value set, look here (and check the login respo
 
 ### 0.0.12
 
-auth managers expose isTokenValid method - if you are using grails REST spring security will call the validate token endpoint (requires, 1.4.0.RC5+ of the grails rest spring security plugin)
+auth managers expose isTokenValid method - if you are using grails REST spring security will call the
+ validate token endpoint (requires, 1.4.0.RC5+ of the grails rest spring security plugin). If the token is invlid
+ it removes it from the browser (this allows turning on anonymous access - if you send an invalid token
+ the backend will send a 403 regardless if the resources is setp to allow access to all)
 
 because of this checkRequest now takes a $http parameter
 
