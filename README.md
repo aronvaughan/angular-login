@@ -309,6 +309,23 @@ add getHeader() method to auth manager (can be used to also configure non angula
 allow json token name to be specified for spring rest security - default to 'access_token' to match latest grails side release
 if you aren't getting the cookie value set, look here (and check the login response from the service, the json return value token name should match)
 
+### 0.0.12
+
+auth managers expose isTokenValid method - if you are using grails REST spring security will call the validate token endpoint (requires, 1.4.0.RC5+ of the grails rest spring security plugin)
+
+because of this checkRequest now takes a $http parameter
+
+``` app.js - when configuring the run.app section
+// run blocks
+myApp.run(['$rootScope', '$cookieStore', '$location', '$cookies', 'avLogin', '$http',
+    function($rootScope, $cookieStore, $location, $cookies, avLogin, $http) {
+        /* Try getting valid user from cookie or go to login page */
+        avLogin.checkRequest($location, $cookieStore, $cookies, $rootScope, $http);
+    }
+]);
+```
+
+
 ## TODO
 
 * figure out integration tests (angular only allows unit or functional)

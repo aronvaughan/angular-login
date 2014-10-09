@@ -13,6 +13,8 @@ var GrailsSpringSecurityRestAuthManager = {
 
     jsonResponseTokenName: 'access_token',
 
+    tokenValidationUrl: '/api/validate',
+
     getName: function() {
         return this.name;
     },
@@ -38,6 +40,29 @@ var GrailsSpringSecurityRestAuthManager = {
             this.logger.debug('use url token');
             config.url = config.url + '?token=' + authToken;
         }
+    },
+
+    isTokenValid: function($http, $rootScope, $cookieStore) {
+
+        var self = this;
+
+        $http({
+            method: 'GET',
+            url: this.tokenValidationUrl,
+            data: "check",
+            headers: this.getHeader($rootScope),
+            ignoreAuthModule: true,
+            withCredentials: true
+        }).
+            success(function(data, status, headers, config) {
+                self.logger.info('back from validate check, valid: TRUE!', [data, status, headers, config]);
+                return true;
+            }).
+            error(function(data, status, headers, config) {
+                self.logger.info('back from validate check, valid: FALSE!', [data, status, headers, config]);
+                self.clear($cookieStore, $rootScope);
+                return false;
+            });
     },
 
     isTokenAvailable: function($rootScope, $cookieStore, $cookies) {

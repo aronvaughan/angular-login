@@ -40,6 +40,10 @@ var SpringSecurityAuthManager = {
         }
     },
 
+    isTokenValid: function($http, $rootScope, $cookieStore) {
+        return true;
+    },
+
     isTokenAvailable: function($rootScope, $cookieStore, $cookies) {
         this.logger.debug('isTokenAvailable?', $cookies);
         this.load($cookieStore, $rootScope);

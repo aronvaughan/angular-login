@@ -34,9 +34,9 @@ myApp.config(['avLogProvider', 'avLevel', 'avLoginProvider',
 ]);
 
 // run blocks
-myApp.run(['$rootScope', '$cookieStore', '$location', '$cookies', 'avLogin',
-    function($rootScope, $cookieStore, $location, $cookies, avLogin) {
+myApp.run(['$rootScope', '$cookieStore', '$location', '$cookies', 'avLogin', '$http',
+    function($rootScope, $cookieStore, $location, $cookies, avLogin, $http) {
         /* Try getting valid user from cookie or go to login page */
-        avLogin.checkRequest($location, $cookieStore, $cookies, $rootScope);
+        avLogin.checkRequest($location, $cookieStore, $cookies, $rootScope, $http);
     }
 ]);
