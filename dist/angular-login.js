@@ -186,7 +186,7 @@ var AVaughanLogin = AVaughanLogin || {
               return config || $q.when(config);
             },
             'responseError': function (rejection) {
-              self.logger.error('avaughan.login request interceptor - responseError', rejection);
+              self.logger.info('avaughan.login request interceptor - responseError', rejection);
               self.loginFailed(rejection);
               if (rejection.status === 403 && self.loginConfig.redirectIfTokenNotFound) {
                 self.logger.info('got 403 and configured to redirect', self.loginConfig.redirectIfTokenNotFoundUrl);
@@ -210,11 +210,11 @@ var AVaughanLogin = AVaughanLogin || {
     isTokenAvailable: function ($rootScope, $cookieStore) {
       return this.getAuthManager().isTokenAvailable($rootScope, $cookieStore);
     },
-    checkRequest: function ($location, $cookieStore, $cookies, $rootScope) {
+    checkRequest: function ($location, $cookieStore, $cookies, $rootScope, $http) {
       /* Try getting valid user from cookie or go to login page */
       var originalPath = $location.path();
       this.getAuthManager().load($cookieStore, $rootScope);
-      if (this.getAuthManager().isTokenAvailable($rootScope, $cookieStore, $cookies)) {
+      if (this.getAuthManager().isTokenAvailable($rootScope, $cookieStore, $cookies) && this.getAuthManager().isTokenValid($http, $rootScope, $cookieStore)) {
         if (this.logger) {
           this.logger.debug('app.js routing to path', originalPath);
         } else {
