@@ -70,6 +70,44 @@ var AVaughanLogin = AVaughanLogin || {
     toLogin: function ($location) {
       $location.path(this.loginConfig.redirectIfTokenNotFoundUrl);
     },
+    parseUri: function (str) {
+      var o = this.parseUriOptions, m = o.parser[o.strictMode ? 'strict' : 'loose'].exec(str), uri = {}, i = 14;
+      while (i--)
+        uri[o.key[i]] = m[i] || '';
+      uri[o.q.name] = {};
+      uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+        if ($1)
+          uri[o.q.name][$1] = $2;
+      });
+      return uri;
+    },
+    parseUriOptions: {
+      strictMode: false,
+      key: [
+        'source',
+        'protocol',
+        'authority',
+        'userInfo',
+        'user',
+        'password',
+        'host',
+        'port',
+        'relative',
+        'path',
+        'directory',
+        'file',
+        'query',
+        'anchor'
+      ],
+      q: {
+        name: 'queryKey',
+        parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+      },
+      parser: {
+        strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+        loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+      }
+    },
     login: function (username, password, $http, $rootScope, $cookieStore, $location) {
       this.logger.debug('service login called ', [
         'location',
@@ -86,7 +124,7 @@ var AVaughanLogin = AVaughanLogin || {
       var postData = {};
       postData[this.loginConfig.loginUserLabel] = username;
       postData[this.loginConfig.loginPassLabel] = password;
-      //var postData = "username=CharlesOwen&password=charlesowen";
+      //var postData = 'username=CharlesOwen&password=charlesowen';
       if (this.loginConfig.postType === 'FORM') {
         headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         postData = this.loginConfig.loginUserLabel + '=' + username + '&' + this.loginConfig.loginPassLabel + '=' + password;
@@ -111,12 +149,18 @@ var AVaughanLogin = AVaughanLogin || {
         self.getAuthManager().save(data, $rootScope, $cookieStore, headers);
         self.authService.loginConfirmed(data, self.configUpdateFunction);
         if (self.loginConfig.redirectAfterLogin) {
-          self.logger.info('should redirect after login', $location.path(), $location.search());
-          if ($location.search().originalUrl) {
-            self.logger.info('original url found', $location.search().originalUrl);
-            var url = $location.search().originalUrl;
+          var url = $location.$$absUrl;
+          self.logger.info('should redirect after login', [
+            $location,
+            url
+          ]);
+          if (url.indexOf('originalUrl=') > -1) {
+            var originalUrl = self.parseUri(url);
+            var forwardToEncoded = originalUrl.queryKey.originalUrl;
+            var urlToGoTo = decodeURIComponent(forwardToEncoded);
+            self.logger.info('original url found', urlToGoTo);
             $location.search('originalUrl', null);
-            $location.path(url);
+            $location.url(urlToGoTo);
           } else {
             self.logger.info('using default url to redirect after login', $location.path().originalUrl);
             $location.path(self.loginConfig.defaultUrlAfterLogin);

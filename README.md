@@ -328,6 +328,10 @@ myApp.run(['$rootScope', '$cookieStore', '$location', '$cookies', 'avLogin', '$h
 ]);
 ```
 
+### 0.0.13
+
+fix handling of query params when forwarding to originalUrl after login
+
 
 ## TODO
 
